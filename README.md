@@ -1,0 +1,1 @@
+# mytemplate-nginx-nodejs-mongo
