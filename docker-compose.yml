@@ -1,0 +1,85 @@
+version: '3.7'
+
+services:
+  web:
+    build:
+      context: ./docker/construct_web
+      dockerfile: Dockerfile-web
+    container_name: projectname-web
+    ports:
+      - 80:80
+    depends_on:
+      - app
+
+  mongo:
+    build:
+      context: ./docker/construct_mongo
+      dockerfile: Dockerfile-mongo
+    container_name: projectname-mongo
+    restart: always
+    env_file: ./env_mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME:MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD:MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE:MONGO_INITDB_DATABASE
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db:/data/db
+      - ./configdb:/data/configdb
+#      - ./docker/construct_mongo/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - type: bind
+        source: ./docker/construct_mongo/docker-entrypoint-initdb.d/create-users.js
+        target: /docker-entrypoint-initdb.d/create-users.js
+#    networks:
+#      - backend
+
+  mongo-express:
+    image: mongo-express
+    container_name: projectname-mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    depends_on:
+      - mongo
+    volumes:
+      - type: bind
+        source: ./docker/construct_mongo-express/wait-for.sh
+        target: /wait-for.sh
+    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- /docker-entrypoint.sh"
+#    networks: 
+#      - backend
+
+  app:
+    build:
+      context: ./docker/construct_app
+      dockerfile: Dockerfile-app
+    container_name: projectname-app
+    ports:
+      - 3000:3000
+    volumes:
+      - ./myapp:/src
+      - type: bind
+        source: ./docker/construct_app/wait-for.sh
+        target: /wait-for.sh
+    depends_on:
+      - mongo
+# Production
+#    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm audit fix --force && npm start"
+#    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm start"
+# Development
+    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm audit fix --force && npm test && npm start"
+#    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && /src/node_modules/.bin/webpack --config /src/webpack.config.js --watch & /src/node_modules/.bin/nodemon /src/server.js"
+# Maintenance
+#    command: sh -c "while :; do sleep 10; done"
+# Other
+#    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- /docker-entrypoint.sh"
+
+#networks: 
+#  backend:
