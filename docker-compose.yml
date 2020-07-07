@@ -74,8 +74,8 @@ services:
 #    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm audit fix --force && npm start"
 #    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm start"
 # Development
-    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm audit fix --force && npm test && npm start"
-#    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && /src/node_modules/.bin/webpack --config /src/webpack.config.js --watch & /src/node_modules/.bin/nodemon /src/server.js"
+#    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && npm audit fix --force && npm test && npm start"
+    command: sh -c "/wait-for.sh mongo:27017 -t 60 -- npm install && /src/node_modules/.bin/webpack --config /src/webpack.config.js --watch & /src/node_modules/.bin/nodemon /src/server.js"
 # Maintenance
 #    command: sh -c "while :; do sleep 10; done"
 # Other
